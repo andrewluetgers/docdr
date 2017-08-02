@@ -1,0 +1,10 @@
+*~
+*.bak
+*.log
+.travis.yml
+
+build/
+lib/*.node
+test/
+tools/
+.idea/

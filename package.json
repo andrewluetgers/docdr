@@ -1,0 +1,51 @@
+{
+	"name": "docdr",
+	"version": "1.0.0",
+	"description": "Docdr is a node.js library for processing and understanding scanned documents",
+	"keywords": [
+		"document",
+		"graphics",
+		"vision",
+		"image",
+		"images",
+		"leptonica",
+		"binarization",
+		"threshold",
+		"morphology"
+	],
+	"homepage": "https://github.com/andrewluetgers/docdr",
+	"bugs": {
+		"url": "https://github.com/andrewluetgers/docdr/issues"
+	},
+	"author": "Andrew Luetgers <andrew.luetgers@gmail.com>",
+	"contributors": [
+		"creatale GmbH <contact@creatale.de>",
+		"Christoph Schulz <schulzcbs@gmail.com>",
+		"Wolfgang Fellger <wf@creatale.de>",
+		"routix <backup32@yandex.ru>",
+		"Christian Dittrich <christian.dittrich@creatale.de>",
+		"chrox <chrox.huang@gmail.com>",
+		"rashfael <rashfael@creatale.de>"
+	],
+	"main": "./lib/docdr",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/andrewluetgers/docdr.git"
+	},
+	"scripts": {
+		"postinstall": "node-gyp clean",
+		"test": "mocha test"
+	},
+	"dependencies": {
+		"nan": "2.x",
+		"node-gyp": "3.x"
+	},
+	"devDependencies": {
+		"mocha": "2.x",
+		"chai": "3.x"
+	},
+	"engines": {
+		"node": ">=0.10.x"
+	},
+	"license": "MIT"
+}
