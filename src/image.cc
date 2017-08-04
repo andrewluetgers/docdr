@@ -1209,7 +1209,8 @@ NAN_METHOD(Image::SauvolaAdaptiveThreshold)
         int32_t winx = info[0]->Int32Value();
         int32_t winy = info[1]->Int32Value();
         float optK = static_cast<float>(info[2]->NumberValue());
-        cv::Mat converted = binarizeSauvola(pix8ToMat(obj->pix_), winx, winy, optK);
+        double optR = static_cast<double>(info[3]->NumberValue());
+        cv::Mat converted = binarizeSauvola(pix8ToMat(obj->pix_), winx, winy, optK, optR);
         Pix *pixd = mat8ToPix(&converted);
 
 		info.GetReturnValue().Set(Image::New(pixConvertTo1(pixd, 128)));

@@ -1,6 +1,7 @@
 global.should = require('chai').should();
-var docdr = require('../lib/docdr');
-var fs = require('fs');
+var docdr = require('../lib/docdr'),
+	fs = require('fs'),
+	pix = docdr.pix;
 
 String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
@@ -18,9 +19,9 @@ describe('Image', function() {
     this.timeout(3000);
     this.slow(250);
     before(function() {
-        this.gray = new docdr('png', fs.readFileSync(__dirname + '/fixtures/dave.png'));
-        this.rgb = new docdr('jpg', fs.readFileSync(__dirname + '/fixtures/rgb.jpg'));
-        this.rgba = new docdr('png', fs.readFileSync(__dirname + '/fixtures/rgba.png'));
+        this.gray = pix('png', fs.readFileSync(__dirname + '/fixtures/dave.png'));
+        this.rgb = pix('jpg', fs.readFileSync(__dirname + '/fixtures/rgb.jpg'));
+        this.rgba = pix('png', fs.readFileSync(__dirname + '/fixtures/rgba.png'));
         this.rgbaBuffer = new Buffer(128 * 256 * 4);
         for (var y = 0; y < 256; y++) {
             for (var x = 0; x < 128; x++) {
@@ -40,12 +41,12 @@ describe('Image', function() {
                 }
             }
         }
-        this.textpage = new docdr('png', fs.readFileSync(__dirname + '/fixtures/textpage300.png'));
+        this.textpage = pix('png', fs.readFileSync(__dirname + '/fixtures/textpage300.png'));
     });
 
     it('should construct from raw data (grayscale)', function() {
     	data = new Buffer('\x00\x01\x02\x04aaaabbbb');
-    	image = new docdr('gray', data, 4, 3);
+    	image = pix('gray', data, 4, 3);
     	image.width.should.equal(4);
     	image.height.should.equal(3);
     	image.depth.should.equal(8);
@@ -54,7 +55,7 @@ describe('Image', function() {
 
     it('should construct from raw data (rgb)', function() {
     	data = new Buffer('\x00\x01\x02\x04aaaabbbb');
-    	image = new docdr('rgb', data, 2, 2);
+    	image = pix('rgb', data, 2, 2);
     	image.width.should.equal(2);
     	image.height.should.equal(2);
     	image.depth.should.equal(32);
@@ -63,7 +64,7 @@ describe('Image', function() {
 
     it('should construct from raw data (rgba)', function() {
     	data = new Buffer('\x00\x01\x02\x04aaaabbbb');
-    	image = new docdr('rgba', data, 3, 1);
+    	image = pix('rgba', data, 3, 1);
     	image.width.should.equal(3);
     	image.height.should.equal(1);
     	image.depth.should.equal(32);
@@ -76,14 +77,14 @@ describe('Image', function() {
         writeImage('gray.png', this.gray);
         writeImage('rgb.png', this.rgb);
         writeImage('rgba.png', this.rgba);
-        writeImage('rgbaBuffer.png', new docdr('rgba', this.rgbaBuffer, 128, 256));
-        writeImage('rgbBuffer.png', new docdr('rgb', this.rgbBuffer, 128, 256));
-        writeImage('whd.png', new docdr(128, 128, 8));
-        writeImage('composed.png', new docdr(this.gray, this.textpage, this.textpage));
+        writeImage('rgbaBuffer.png', pix('rgba', this.rgbaBuffer, 128, 256));
+        writeImage('rgbBuffer.png', pix('rgb', this.rgbBuffer, 128, 256));
+        writeImage('whd.png', pix(128, 128, 8));
+        writeImage('composed.png', pix(this.gray, this.textpage, this.textpage));
     });
 
     it('should return raw image data using #toBuffer()', function() {
-        var buf = new docdr('rgb', this.rgbBuffer, 128, 256).toBuffer();
+        var buf = pix('rgb', this.rgbBuffer, 128, 256).toBuffer();
         buf.length.should.equal(this.rgbBuffer.length);
         for (var i = 0; i < 1000; i++) {
             buf[i].should.equal(this.rgbBuffer[i]);
@@ -109,18 +110,18 @@ describe('Image', function() {
     it('should #add() and #subtract() arithmetically for grayscale', function() {
         var red = this.rgba.toGray(1, 0, 0);
         var cyan = this.rgba.toGray(0, 0.5, 0.5);
-        this.rgba.subtract(new docdr(this.rgba)).toBuffer()[0].should.equal(0);
-        this.rgba.subtract(new docdr(this.rgba)).toBuffer()[0].should.equal(0);
+        this.rgba.subtract(pix(this.rgba)).toBuffer()[0].should.equal(0);
+        this.rgba.subtract(pix(this.rgba)).toBuffer()[0].should.equal(0);
         writeImage('gray-arith-add.png', red.add(cyan));
         writeImage('gray-arith-subtract.png', red.subtract(cyan));
         writeImage('color-arith-add.png', this.rgb.add(this.rgb));
     });
 
     it('should #add() and #subtract() arithmetically for rgb', function() {
-    	this.rgba.subtract(new docdr(this.rgba)).toBuffer()[0].should.equal(0);
+    	this.rgba.subtract(pix(this.rgba)).toBuffer()[0].should.equal(0);
     
-    	a = new docdr('rgb', new Buffer([200,200,200]), 1, 1);
-    	b = new docdr('rgb', new Buffer([50, 60, 70]), 1, 1);
+    	a = pix('rgb', new Buffer([200,200,200]), 1, 1);
+    	b = pix('rgb', new Buffer([50, 60, 70]), 1, 1);
     	a.add(b).toBuffer().should.deep.equal(new Buffer([250, 255, 255]));
     	a.subtract(b).toBuffer().should.deep.equal(new Buffer([150, 140, 130]));
     	// If you were expecting [0, 0, 0], you are apparantly not an implementor of Leptonica.
@@ -235,14 +236,14 @@ describe('Image', function() {
     });
 
     it('should throw error on too large precision', function() {
-    	empty = new docdr('gray', new Buffer(1), 1, 1).toGray();
+    	empty = pix('gray', new Buffer(1), 1, 1).toGray();
     	empty.lineSegments.bind(empty, 1, 0, false).should.throw(Error);
     });
 
     it('should #connectedComponents()', function() {
         var binaryImage = this.textpage.otsuAdaptiveThreshold(32, 32, 0, 0, 0.1).image;
         var boxes = binaryImage.connectedComponents(4);
-        var canvas = new docdr(binaryImage);
+        var canvas = pix(binaryImage);
         for (var i in boxes) {
             canvas.drawBox(boxes[i], 2, 'set');
         }
@@ -255,7 +256,7 @@ describe('Image', function() {
     });
     
 	it('should #fillBox()', function() {
-        var canvas = new docdr(this.gray)
+        var canvas = pix(this.gray)
         .fillBox(100, 100, 100, 100, 192)
         .fillBox(150, 150, 100, 100, 64)
         writeImage('gray-box2.png', canvas);
@@ -265,7 +266,7 @@ describe('Image', function() {
         writeImage('gray-box2-color.png', colorCanvas);
     });
     it('should #drawBox()', function() {
-        var canvas = new docdr(this.gray)
+        var canvas = pix(this.gray)
         .drawBox(50, 50, 100, 100, 5, 'set')
         .drawBox(100, 100, 100, 100, 5, 'clear')
         .drawBox(150, 150, 100, 100, 5, 'flip')
@@ -277,9 +278,9 @@ describe('Image', function() {
     });
 
     it('should #drawImage()', function() {
-        var canvas = new docdr(512, 512, 8);
+        var canvas = pix(512, 512, 8);
         canvas.drawImage(this.gray, 128, 128, 256, 256);
-        writeImage('whd-drawImage.png', canvas);   
+        writeImage('whd-drawImage.png', canvas);
     });
 
     it('should #octreeColorQuant()', function() {
@@ -315,8 +316,8 @@ describe('Image', function() {
         for (var i = 0; i < 256; i++)
             curve[i] = i / 2;
         curve[255] = 200;
-        var mask = new docdr(this.gray).threshold(48).invert().clearBox(50, 50, 200, 100);
-        writeImage('gray-curve.png', new docdr(this.gray).applyCurve(curve, mask));
-        writeImage('gray-setmasked.png', new docdr(this.gray).setMasked(mask, 255));
+        var mask = pix(this.gray).threshold(48).invert().clearBox(50, 50, 200, 100);
+        writeImage('gray-curve.png', pix(this.gray).applyCurve(curve, mask));
+        writeImage('gray-setmasked.png', pix(this.gray).setMasked(mask, 255));
     });
 });
